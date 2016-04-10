@@ -3,9 +3,9 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd"
              version="6">
-   <!-- <module id="ejb">
+   <module id="ejb">
       <ejb>ejb.jar</ejb>
-   </module> -->
+   </module>
    <module id="web">
       <web>
          <web-uri>web.war</web-uri>
