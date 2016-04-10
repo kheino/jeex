@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wsdl:definitions
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+      xmlns:tns="http://beans.ejb.jeex/"
+      xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+      name="TopicManagerService"
+      targetNamespace="http://beans.ejb.jeex/">
+   <wsdl:types>
+      <xs:schema
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:tns="http://beans.ejb.jeex/"
+            elementFormDefault="unqualified"
+            targetNamespace="http://beans.ejb.jeex/"
+            version="1.0">
+
+         <xs:element name="listTopics" type="tns:listTopics"/>
+
+         <xs:element name="listTopicsResponse" type="tns:listTopicsResponse"/>
+
+         <xs:complexType name="listTopics">
+            <xs:sequence/>
+         </xs:complexType>
+
+         <xs:complexType name="listTopicsResponse">
+            <xs:sequence>
+               <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:topic"/>
+            </xs:sequence>
+         </xs:complexType>
+
+         <xs:complexType name="topic">
+            <xs:sequence>
+               <xs:element name="id" type="xs:long"/>
+               <xs:element minOccurs="0" name="name" type="xs:string"/>
+            </xs:sequence>
+         </xs:complexType>
+
+      </xs:schema>
+   </wsdl:types>
+   <wsdl:message name="listTopicsResponse">
+      <wsdl:part element="tns:listTopicsResponse" name="parameters">
+      </wsdl:part>
+   </wsdl:message>
+   <wsdl:message name="listTopics">
+      <wsdl:part element="tns:listTopics" name="parameters">
+      </wsdl:part>
+   </wsdl:message>
+   <wsdl:portType name="topic">
+      <wsdl:operation name="listTopics">
+         <wsdl:input message="tns:listTopics" name="listTopics">
+         </wsdl:input>
+         <wsdl:output message="tns:listTopicsResponse" name="listTopicsResponse">
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:portType>
+   <wsdl:binding name="TopicManagerServiceSoapBinding" type="tns:topic">
+      <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="listTopics">
+         <soap:operation soapAction="" style="document"/>
+         <wsdl:input name="listTopics">
+            <soap:body use="literal"/>
+         </wsdl:input>
+         <wsdl:output name="listTopicsResponse">
+            <soap:body use="literal"/>
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:binding>
+   <wsdl:service name="TopicManagerService">
+      <wsdl:port binding="tns:TopicManagerServiceSoapBinding" name="topicPort">
+         <soap:address location=""/>
+      </wsdl:port>
+   </wsdl:service>
+</wsdl:definitions>

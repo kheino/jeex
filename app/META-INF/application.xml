@@ -12,4 +12,10 @@
          <context-root>jeex</context-root>
       </web>
    </module>
+   <module id="ws">
+      <web>
+         <web-uri>ws.war</web-uri>
+         <context-root>jeex.ws</context-root>
+      </web>
+   </module>
 </application>
