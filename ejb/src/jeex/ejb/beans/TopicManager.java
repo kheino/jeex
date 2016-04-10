@@ -15,6 +15,10 @@ public class TopicManager implements TopicManagerLocal, TopicManagerRemote {
    @PersistenceContext
    private EntityManager em;
 
+   void setEntityManager(EntityManager em) {
+      this.em = em;
+   }
+
    @Override
    public List<Topic> listTopics() {
       TypedQuery<TopicEntity> q = em.createNamedQuery(TopicEntity.findAll, TopicEntity.class);
