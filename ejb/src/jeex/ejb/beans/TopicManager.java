@@ -4,6 +4,7 @@ import jeex.ejb.domain.Topic;
 import jeex.ejb.entities.TopicEntity;
 
 import javax.ejb.Stateless;
+import javax.jws.WebService;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
+@WebService(name = "topic")
 public class TopicManager implements TopicManagerLocal, TopicManagerRemote {
    @PersistenceContext
    private EntityManager em;
