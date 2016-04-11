@@ -22,7 +22,7 @@ public class TopicManager implements TopicManagerLocal, TopicManagerRemote {
    }
 
    @Override
-   public List<Topic> listTopics() {
+   public List<Topic> listAll() {
       TypedQuery<TopicEntity> q = em.createNamedQuery(TopicEntity.findAll, TopicEntity.class);
       List<Topic> result = new ArrayList<>();
 

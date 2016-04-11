@@ -48,11 +48,11 @@ public class TopicManagerTest {
    }
 
    @Test
-   public void testListTopics() {
+   public void testListAll() {
       when(em.createNamedQuery(TopicEntity.findAll, TopicEntity.class)).thenReturn(q);
       when(q.getResultList()).thenReturn(entities);
 
-      List<Topic> actual = manager.listTopics();
+      List<Topic> actual = manager.listAll();
 
       assertEquals(3, actual.size());
 

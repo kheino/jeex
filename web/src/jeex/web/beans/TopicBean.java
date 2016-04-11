@@ -15,6 +15,6 @@ public class TopicBean {
    private TopicManagerLocal ejb;
 
    public List<Topic> getTopics() {
-      return ejb.listTopics();
+      return ejb.listAll();
    }
 }
