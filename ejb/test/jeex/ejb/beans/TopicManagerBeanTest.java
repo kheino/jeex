@@ -18,8 +18,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TopicManagerTest {
-   private TopicManager manager;
+public class TopicManagerBeanTest {
+   private TopicManagerBean manager;
 
    // Mocks
    private EntityManager em;
@@ -37,7 +37,7 @@ public class TopicManagerTest {
       em = mock(EntityManager.class);
       q = mock(TypedQuery.class);
 
-      manager = new TopicManager();
+      manager = new TopicManagerBean();
       manager.setEntityManager(em);
 
       // Populate entities list

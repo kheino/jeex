@@ -14,7 +14,7 @@ import java.util.List;
 
 @Stateless
 @WebService(name = "topic")
-public class TopicManager implements TopicManagerLocal, TopicManagerRemote {
+public class TopicManagerBean implements TopicManagerLocal, TopicManagerRemote {
    @PersistenceContext
    private EntityManager em;
 
