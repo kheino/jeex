@@ -35,4 +35,26 @@ public class TopicEntity {
    public void setName(String name) {
       this.name = name;
    }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == this)
+         return true;
+
+      if (!(obj instanceof TopicEntity))
+         return false;
+
+      TopicEntity other = (TopicEntity) obj;
+
+      return (id == other.getId() &&
+              name.equals(other.getName()));
+   }
+
+   @Override
+   public int hashCode() {
+      int hash = 1;
+      hash = (37 * hash + (int)(id ^ (id >>> 32)));
+      hash = (41 * hash + name.hashCode());
+      return hash;
+   }
 }
