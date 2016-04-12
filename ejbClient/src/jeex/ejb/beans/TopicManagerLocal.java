@@ -3,5 +3,5 @@ package jeex.ejb.beans;
 import javax.ejb.Local;
 
 @Local
-public interface TopicManagerLocal extends TopicManagerCommon {
+public interface TopicManagerLocal extends TopicManager {
 }

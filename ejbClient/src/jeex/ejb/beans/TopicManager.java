@@ -5,7 +5,7 @@ import jeex.ejb.domain.Topic;
 import javax.ejb.ObjectNotFoundException;
 import java.util.List;
 
-public interface TopicManagerCommon {
+public interface TopicManager {
    List<Topic> listAll();
 
    Topic find(long id) throws ObjectNotFoundException;
