@@ -23,6 +23,7 @@ public class TopicEntity implements HasId<Long> {
    @NotNull
    private String name;
 
+   @Override
    public Long getId() {
       return id;
    }

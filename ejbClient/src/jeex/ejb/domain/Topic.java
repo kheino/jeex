@@ -9,6 +9,7 @@ public class Topic implements HasId<Long>, Serializable {
 
    private String name;
 
+   @Override
    public Long getId() {
       return id;
    }
