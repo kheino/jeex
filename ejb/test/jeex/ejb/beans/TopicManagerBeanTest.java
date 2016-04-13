@@ -14,12 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TopicManagerBeanTest {
-   private TopicManagerBean manager;
+   @Rule
+   public ExpectedException thrown = ExpectedException.none();
+
+   private TopicManager manager;
 
    // Mocks
    private EntityManager em;
@@ -28,8 +33,19 @@ public class TopicManagerBeanTest {
    // Test data
    private List<TopicEntity> entities;
 
-   @Rule
-   public ExpectedException thrown = ExpectedException.none();
+   private static Topic createTopic(Long id, String name) {
+      Topic topic = new Topic();
+      topic.setId(id);
+      topic.setName(name);
+      return topic;
+   }
+
+   private static TopicEntity createEntity(Long id, String name) {
+      TopicEntity entity = new TopicEntity();
+      entity.setId(id);
+      entity.setName(name);
+      return entity;
+   }
 
    @Before
    @SuppressWarnings("unchecked")
@@ -38,27 +54,12 @@ public class TopicManagerBeanTest {
       q = mock(TypedQuery.class);
 
       manager = new TopicManagerBean();
-      manager.setEntityManager(em);
+      ((ManagerBean)manager).setEntityManager(em);
 
-      // Populate entities list
       entities = new ArrayList<>();
-      entities.add(createEntity(1, "Foo"));
-      entities.add(createEntity(2, "Bar"));
-      entities.add(createEntity(3, "Baz"));
-   }
-
-   private static TopicEntity createEntity(long id, String name) {
-      TopicEntity entity = new TopicEntity();
-      entity.setId(id);
-      entity.setName(name);
-      return entity;
-   }
-
-   private static Topic createTopic(long id, String name) {
-      Topic topic = new Topic();
-      topic.setId(id);
-      topic.setName(name);
-      return topic;
+      entities.add(createEntity(1L, "Foo"));
+      entities.add(createEntity(2L, "Bar"));
+      entities.add(createEntity(3L, "Baz"));
    }
 
    @Test
@@ -73,13 +74,13 @@ public class TopicManagerBeanTest {
 
       assertEquals(3, topics.size());
 
-      assertEquals(1, topics.get(0).getId());
+      assertEquals(1, topics.get(0).getId().longValue());
       assertEquals("Foo", topics.get(0).getName());
 
-      assertEquals(2, topics.get(1).getId());
+      assertEquals(2, topics.get(1).getId().longValue());
       assertEquals("Bar", topics.get(1).getName());
 
-      assertEquals(3, topics.get(2).getId());
+      assertEquals(3, topics.get(2).getId().longValue());
       assertEquals("Baz", topics.get(2).getName());
    }
 
@@ -87,10 +88,10 @@ public class TopicManagerBeanTest {
    public void testFind() throws Exception {
       when(em.find(TopicEntity.class, 1L)).thenReturn(entities.get(0));
 
-      Topic topic = manager.find(1);
+      Topic topic = manager.find(1L);
 
       verify(em).find(TopicEntity.class, 1L);
-      assertEquals(1, topic.getId());
+      assertEquals(1, topic.getId().longValue());
       assertEquals("Foo", topic.getName());
    }
 
@@ -99,34 +100,50 @@ public class TopicManagerBeanTest {
       when(em.find(TopicEntity.class, 0L)).thenReturn(null);
 
       thrown.expect(ObjectNotFoundException.class);
-      manager.find(0);
+      manager.find(0L);
    }
 
    @Test
-   public void testPersist() {
-      Topic topic = createTopic(0, "Foo");
-      TopicEntity entity = createEntity(0, "Foo");
+   public void testCreate() {
+      Topic topic = createTopic(null, "Foo");
+      TopicEntity entity = createEntity(null, "Foo");
 
-      manager.persist(topic);
+      manager.create(topic);
 
       verify(em).persist(entity);
    }
 
    @Test
-   public void testPersistIgnoresTopicId() {
-      Topic topic = createTopic(1, "");
-      TopicEntity entity = createEntity(0, "");
+   public void testCreateIgnoresProvidedId() {
+      Topic topic = createTopic(1L, "");
+      TopicEntity entity = createEntity(null, "");
 
-      long assignedId = manager.persist(topic);
+      manager.create(topic);
 
       verify(em).persist(entity);
-      // Since no id is actually assigned, it remains 0
-      assertEquals(0, assignedId);
+   }
+
+   @Test
+   public void testCreateReturnsNewTopicWithAssignedId() {
+      Topic topic = createTopic(null, "");
+      TopicEntity entity = createEntity(null, "");
+
+      // Simulate id assignment
+      doAnswer(invocation -> {
+         TopicEntity ent = (TopicEntity)invocation.getArguments()[0];
+         ent.setId(1L);
+         return null;
+      }).when(em).persist(entity);
+
+      Topic created = manager.create(topic);
+
+      assertNotSame(topic, created);
+      assertEquals(1, created.getId().longValue());
    }
 
    @Test
    public void testUpdate() throws Exception {
-      Topic topic = createTopic(1, "Qux");
+      Topic topic = createTopic(1L, "Qux");
       TopicEntity entity = entities.get(0);
 
       when(em.find(TopicEntity.class, 1L)).thenReturn(entity);
@@ -139,7 +156,7 @@ public class TopicManagerBeanTest {
 
    @Test
    public void testUpdateThrowsObjectNotFoundExceptionOnBadId() throws Exception {
-      Topic topic = createTopic(0, "");
+      Topic topic = createTopic(0L, "");
 
       when(em.find(TopicEntity.class, 0L)).thenReturn(null);
 
@@ -149,7 +166,7 @@ public class TopicManagerBeanTest {
 
    @Test
    public void testDelete() throws Exception {
-      Topic topic = createTopic(1, "");
+      Topic topic = createTopic(1L, "");
       TopicEntity entity = entities.get(0);
 
       when(em.find(TopicEntity.class, 1L)).thenReturn(entity);
@@ -162,7 +179,7 @@ public class TopicManagerBeanTest {
 
    @Test
    public void testDeleteThrowsObjectNotFoundExceptionOnBadId() throws Exception {
-      Topic topic = createTopic(0, "");
+      Topic topic = createTopic(0L, "");
 
       when(em.find(TopicEntity.class, 0L)).thenReturn(null);
 

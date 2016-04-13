@@ -8,9 +8,9 @@ import java.util.List;
 public interface TopicManager {
    List<Topic> listAll();
 
-   Topic find(long id) throws ObjectNotFoundException;
+   Topic find(Long id) throws ObjectNotFoundException;
 
-   long persist(Topic topic);
+   Topic create(Topic topic);
 
    void update(Topic topic) throws ObjectNotFoundException;
 

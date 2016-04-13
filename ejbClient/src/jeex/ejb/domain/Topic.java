@@ -1,17 +1,19 @@
 package jeex.ejb.domain;
 
+import jeex.ejb.HasId;
+
 import java.io.Serializable;
 
-public class Topic implements Serializable {
-   private long id;
+public class Topic implements HasId<Long>, Serializable {
+   private Long id;
 
    private String name;
 
-   public long getId() {
+   public Long getId() {
       return id;
    }
 
-   public void setId(long id) {
+   public void setId(Long id) {
       this.id = id;
    }
 
