@@ -41,8 +41,6 @@ public abstract class ManagerBean<T extends HasId<K>, E extends HasId<K>, K exte
    public T create(T domainObj) {
       E entity = toEntity(domainObj);
       em.persist(entity);
-      // Commit now so we can return assigned id
-      em.flush();
       return toDomain(entity);
    }
 
