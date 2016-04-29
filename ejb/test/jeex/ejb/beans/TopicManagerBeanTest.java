@@ -24,7 +24,7 @@ public class TopicManagerBeanTest {
    @Rule
    public ExpectedException thrown = ExpectedException.none();
 
-   private TopicManager manager;
+   private TopicManagerBean manager;
 
    // Mocks
    private EntityManager em;
@@ -54,7 +54,7 @@ public class TopicManagerBeanTest {
       q = mock(TypedQuery.class);
 
       manager = new TopicManagerBean();
-      ((ManagerBean)manager).setEntityManager(em);
+      manager.setEntityManager(em);
 
       entities = new ArrayList<>();
       entities.add(createEntity(1L, "Foo"));
@@ -71,17 +71,7 @@ public class TopicManagerBeanTest {
 
       verify(em).createNamedQuery(TopicEntity.findAll, TopicEntity.class);
       verify(q).getResultList();
-
-      assertEquals(3, topics.size());
-
-      assertEquals(1, topics.get(0).getId().longValue());
-      assertEquals("Foo", topics.get(0).getName());
-
-      assertEquals(2, topics.get(1).getId().longValue());
-      assertEquals("Bar", topics.get(1).getName());
-
-      assertEquals(3, topics.get(2).getId().longValue());
-      assertEquals("Baz", topics.get(2).getName());
+      assertEquals(manager.toDomain(entities), topics);
    }
 
    @Test
@@ -91,8 +81,7 @@ public class TopicManagerBeanTest {
       Topic topic = manager.find(1L);
 
       verify(em).find(TopicEntity.class, 1L);
-      assertEquals(1, topic.getId().longValue());
-      assertEquals("Foo", topic.getName());
+      assertEquals(manager.toDomain(entities.get(0)), topic);
    }
 
    @Test
