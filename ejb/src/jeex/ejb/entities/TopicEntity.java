@@ -7,7 +7,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Entity(name = "Topic")
 @NamedQueries({
@@ -22,6 +24,9 @@ public class TopicEntity implements HasId<Long> {
 
    @NotNull
    private String name;
+
+   @OneToMany(mappedBy = "topic")
+   private List<DiscussionEntity> discussions;
 
    @Override
    public Long getId() {
@@ -38,6 +43,14 @@ public class TopicEntity implements HasId<Long> {
 
    public void setName(String name) {
       this.name = name;
+   }
+
+   public List<DiscussionEntity> getDiscussions() {
+      return discussions;
+   }
+
+   public void setDiscussions(List<DiscussionEntity> discussions) {
+      this.discussions = discussions;
    }
 
    @Override

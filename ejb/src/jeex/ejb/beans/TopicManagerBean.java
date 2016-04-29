@@ -12,6 +12,8 @@ import java.util.List;
 public class TopicManagerBean extends ManagerBean<Topic, TopicEntity, Long>
       implements TopicManagerLocal, TopicManagerRemote, TopicManagerWs {
 
+   private final DiscussionManagerBean discussionManager = new DiscussionManagerBean();
+
    public TopicManagerBean() {
       super(Topic.class, TopicEntity.class);
    }
@@ -19,5 +21,15 @@ public class TopicManagerBean extends ManagerBean<Topic, TopicEntity, Long>
    @Override
    public List<Topic> listAll() {
       return query(TopicEntity.findAll);
+   }
+
+   @Override
+   public Topic toDomain(TopicEntity entity) {
+      Topic topic = super.toDomain(entity);
+
+      topic.setDiscussions(
+            discussionManager.toDomain(entity.getDiscussions()));
+
+      return topic;
    }
 }

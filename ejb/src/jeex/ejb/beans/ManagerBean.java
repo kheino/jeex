@@ -1,32 +1,32 @@
 package jeex.ejb.beans;
 
 import jeex.ejb.HasId;
+import jeex.ejb.beans.mapping.DomainMapper;
 
 import javax.ejb.EJBException;
 import javax.ejb.ObjectNotFoundException;
 import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public abstract class ManagerBean<T extends HasId<K>, E extends HasId<K>, K extends Serializable> {
-   @PersistenceContext
-   protected EntityManager em;
+   private final Class<T> domainClass;
+   private final Class<E> entityClass;
 
-   protected final Class<T> domainClass;
-   protected final Class<E> entityClass;
+   private final DomainMapper<T, E> mapper;
+
+   @PersistenceContext
+   private EntityManager em;
 
    protected ManagerBean(Class<T> domainClass, Class<E> entityClass) {
       this.domainClass = domainClass;
       this.entityClass = entityClass;
+
+      mapper = new DomainMapper<>(domainClass, entityClass);
    }
 
    // Allow injecting a mock EntityManager for testing
@@ -47,24 +47,50 @@ public abstract class ManagerBean<T extends HasId<K>, E extends HasId<K>, K exte
    }
 
    public void update(T domainObj) throws ObjectNotFoundException {
-      mapToEntity(domainObj, findEntity(domainObj.getId()));
+      mapper.mapToEntity(domainObj, findEntity(domainObj.getId()));
    }
 
    public void delete(T domainObj) throws ObjectNotFoundException {
       em.remove(findEntity(domainObj.getId()));
    }
 
-   protected List<T> query(String queryName) {
-      TypedQuery<E> q = em.createNamedQuery(queryName, entityClass);
+   public E toEntity(T domainObj) {
+      return mapper.mapToEntity(domainObj, newInstance(entityClass));
+   }
+
+   public T toDomain(E entity) {
+      return mapper.mapToDomain(entity, newInstance(domainClass));
+   }
+
+   public List<T> toDomain(Collection<E> entities) {
       List<T> result = new ArrayList<>();
 
-      q.getResultList().forEach(entity ->
+      if (entities != null) {
+         entities.forEach(entity ->
+               result.add(toDomain(entity)));
+      }
+
+      return result;
+   }
+
+   protected List<T> query(String queryName) {
+      return query(createQuery(queryName));
+   }
+
+   protected List<T> query(TypedQuery<E> query) {
+      List<T> result = new ArrayList<>();
+
+      query.getResultList().forEach(entity ->
             result.add(toDomain(entity)));
 
       return result;
    }
 
-   protected E findEntity(K id) throws ObjectNotFoundException {
+   protected TypedQuery<E> createQuery(String queryName) {
+      return em.createNamedQuery(queryName, entityClass);
+   }
+
+   private E findEntity(K id) throws ObjectNotFoundException {
       E entity = em.find(entityClass, id);
 
       if (entity == null)
@@ -73,75 +99,10 @@ public abstract class ManagerBean<T extends HasId<K>, E extends HasId<K>, K exte
       return entity;
    }
 
-   protected T toDomain(E entity) {
+   private static <R> R newInstance(Class<R> clazz) {
       try {
-         return mapToDomain(entity, domainClass.newInstance());
+         return clazz.newInstance();
       } catch (InstantiationException | IllegalAccessException e) {
-         throw new EJBException(e);
-      }
-   }
-
-   protected E toEntity(T domainObj) {
-      try {
-         return mapToEntity(domainObj, entityClass.newInstance());
-      } catch (InstantiationException | IllegalAccessException e) {
-         throw new EJBException(e);
-      }
-   }
-
-   protected T mapToDomain(E entity, T domainObj) {
-      for (Field src : entityClass.getDeclaredFields()) {
-         // Skip field if it represents a relation
-         if (isRelation(src)) {
-            continue;
-         }
-
-         for (Field dest : domainClass.getDeclaredFields()) {
-            if (dest.getName().equals(src.getName())) {
-               map(src, entity, dest, domainObj);
-               break;
-            }
-         }
-      }
-
-      return domainObj;
-   }
-
-   protected E mapToEntity(T domainObj, E entity) {
-      for (Field dest : entityClass.getDeclaredFields()) {
-         // Skip field if relation or id
-         if (isRelation(dest) || isId(dest)) {
-            continue;
-         }
-
-         for (Field src : domainClass.getDeclaredFields()) {
-            if (src.getName().equals(dest.getName())) {
-               map(src, domainObj, dest, entity);
-               break;
-            }
-         }
-      }
-
-      return entity;
-   }
-
-   private static boolean isRelation(Field f) {
-      return (f.isAnnotationPresent(OneToOne.class)
-            || f.isAnnotationPresent(OneToMany.class)
-            || f.isAnnotationPresent(ManyToOne.class)
-            || f.isAnnotationPresent(ManyToMany.class));
-   }
-
-   private static boolean isId(Field f) {
-      return f.isAnnotationPresent(Id.class);
-   }
-
-   private static void map(Field src, Object srcObj, Field dest, Object destObj) {
-      try {
-         src.setAccessible(true);
-         dest.setAccessible(true);
-         dest.set(destObj, src.get(srcObj));
-      } catch (IllegalAccessException e) {
          throw new EJBException(e);
       }
    }
