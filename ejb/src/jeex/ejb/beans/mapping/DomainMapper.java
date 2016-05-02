@@ -20,24 +20,31 @@ public class DomainMapper<T, E> {
    }
 
    public T mapToDomain(E entity, T domainObj) {
-      for (Field srcField : entityClass.getDeclaredFields()) {
-         boolean useId = isRelation(srcField);
+      try {
+         for (Field srcField : entityClass.getDeclaredFields()) {
+            boolean useId = isRelation(srcField);
 
-         for (Field targetField : domainClass.getDeclaredFields()) {
-            if (useId) {
-               if (targetField.getName().equals(srcField.getName() + "Id")) {
-                  map(srcField, targetField, domainObj, () ->
-                        ((HasId)srcField.get(entity)).getId());
+            for (Field targetField : domainClass.getDeclaredFields()) {
+               if (useId) {
+                  srcField.setAccessible(true);
+                  Object value = srcField.get(entity);
+
+                  if (value != null && targetField.getName().equals(srcField.getName() + "Id")) {
+                     map(srcField, targetField, domainObj, ((HasId)value)::getId);
+                     break;
+                  }
+               } else if (targetField.getName().equals(srcField.getName())) {
+                  map(srcField, entity, targetField, domainObj);
                   break;
                }
-            } else if (targetField.getName().equals(srcField.getName())) {
-               map(srcField, entity, targetField, domainObj);
-               break;
             }
          }
-      }
 
-      return domainObj;
+         return domainObj;
+      } catch (IllegalAccessException e) {
+         // Should never happen
+         throw new EJBException(e);
+      }
    }
 
    public E mapToEntity(T domainObj, E entity) {
