@@ -30,7 +30,7 @@ public class DomainMapper<T, E> {
                   Object value = srcField.get(entity);
 
                   if (value != null && targetField.getName().equals(srcField.getName() + "Id")) {
-                     map(srcField, targetField, domainObj, ((HasId)value)::getId);
+                     set(targetField, domainObj, ((HasId)value).getId());
                      break;
                   }
                } else if (targetField.getName().equals(srcField.getName())) {
@@ -48,21 +48,26 @@ public class DomainMapper<T, E> {
    }
 
    public E mapToEntity(T domainObj, E entity) {
-      for (Field targetField : entityClass.getDeclaredFields()) {
-         // Skip field if relation or id
-         if (isRelation(targetField) || isId(targetField)) {
-            continue;
-         }
+      try {
+         for (Field targetField : entityClass.getDeclaredFields()) {
+            // Skip field if relation or id
+            if (isRelation(targetField) || isId(targetField)) {
+               continue;
+            }
 
-         for (Field srcField : domainClass.getDeclaredFields()) {
-            if (srcField.getName().equals(targetField.getName())) {
-               map(srcField, domainObj, targetField, entity);
-               break;
+            for (Field srcField : domainClass.getDeclaredFields()) {
+               if (srcField.getName().equals(targetField.getName())) {
+                  map(srcField, domainObj, targetField, entity);
+                  break;
+               }
             }
          }
-      }
 
-      return entity;
+         return entity;
+      } catch (IllegalAccessException e) {
+         // Should never happen
+         throw new EJBException(e);
+      }
    }
 
    private static boolean isId(Field f) {
@@ -76,22 +81,15 @@ public class DomainMapper<T, E> {
             || f.isAnnotationPresent(ManyToMany.class));
    }
 
-   private static void map(Field srcField, Object src, Field targetField, Object target) {
-      map(srcField, targetField, target, () -> srcField.get(src));
+   private static void map(Field srcField, Object src, Field targetField, Object target)
+         throws IllegalAccessException {
+      srcField.setAccessible(true);
+      set(targetField, target, srcField.get(src));
    }
 
-   private static void map(Field srcField, Field targetField, Object target, ExceptionalSupplier<?> supplier) {
-      try {
-         srcField.setAccessible(true);
-         targetField.setAccessible(true);
-         targetField.set(target, supplier.get());
-      } catch (Exception e) {
-         throw new EJBException(e);
-      }
-   }
-
-   @FunctionalInterface
-   private interface ExceptionalSupplier<T> {
-      T get() throws Exception;
+   private static void set(Field field, Object target, Object value)
+         throws IllegalAccessException {
+      field.setAccessible(true);
+      field.set(target, value);
    }
 }
